@@ -1,0 +1,4 @@
+{
+  "sources": ["wx.getStorage", "wx.getStorageSync", "[double_binding]"],
+  "sinks": ["wx.setStorage", "wx.setStorageSync", "wx.navigateTo", "wx.navigateToMiniProgram"]
+}
