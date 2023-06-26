@@ -1,5 +1,5 @@
 # Copyright (C) 2021 Aurore Fass
-# Copyright (C) 2022 Anonymous
+# Copyright (C) 2022 Chao Wang
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -26,6 +26,7 @@ import logging
 import timeit
 import json
 from multiprocessing import Process, Queue
+import platform
 
 from . import node as _node
 from . import build_ast
@@ -113,7 +114,9 @@ def get_data_flow(input_file, benchmarks, store_pdgs=None, check_var=False, beau
     """
 
     start = timeit.default_timer()
-    utility_df.limit_memory(20*10**9)  # Limiting the memory usage to 20GB
+    # testing on macOS, don't set limit
+    if platform.system() != "Darwin":
+        utility_df.limit_memory(20*10**9)  # Limiting the memory usage to 20GB
     if input_file.endswith('.js'):
         esprima_json = input_file.replace('.js', '.json')
     else:

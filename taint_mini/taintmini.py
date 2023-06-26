@@ -2,6 +2,7 @@ import os
 import time
 from .wxjs import gen_pdg, handle_wxjs
 from .wxml import handle_wxml
+from .inter_page import handle_inter_page_data, add_inter_page_data
 from .storage import Storage
 import multiprocessing as mp
 
@@ -42,7 +43,7 @@ def filter_results(results, config):
     return filtered
 
 
-def analyze_worker(app_path, page_path, results_path, config, queue):
+def analyze_worker(app_path, page_path, results_path, config, queue, inter_page_queue):
     # generate pdg first
     r = gen_pdg(os.path.join(app_path, "pages", f"{page_path}.js"), results_path)
     # init shared storage (per process)
@@ -52,16 +53,17 @@ def analyze_worker(app_path, page_path, results_path, config, queue):
     # analyze data flow
     handle_wxjs(r)
     # retrieve results
-    results = Storage.get_instance().get_results()
+    storage = Storage.get_instance()
+    inter_page_queue.put(storage)
     # filter results
-    filtered = filter_results(results, config)
+    filtered = filter_results(storage.get_results(), config)
     # send results
     queue.put(filtered)
 
 
 def analyze_listener(result_path, queue):
     with open(result_path, "w") as f:
-        f.write("page_name | page_method | ident | source | sink\n")
+        f.write("page_name|page_method|ident|source|sink\n")
         while True:
             message = queue.get()
             if message == "kill":
@@ -69,9 +71,30 @@ def analyze_listener(result_path, queue):
             if isinstance(message, dict):
                 for page in message:
                     for flow in message[page]:
-                        f.write(f"{page} | {flow['method']} | {flow['ident']} | {flow['source']} | {flow['sink']}\n")
+                        f.write(f"{page}|{flow['method']}|{flow['ident']}|{flow['source']}|{flow['sink']}\n")
                 f.flush()
         f.flush()
+
+
+def inter_page_analyze_listener(result_path, queue):
+    with open(result_path, "w") as f:
+        f.write("from_page|to_page|event_name|source|sink\n")
+        while True:
+            message = queue.get()
+            if message == "kill":
+                try:
+                    # array of result
+                    results = handle_inter_page_data()
+                    for result in results:
+                        f.write(f"{result['from_page']}|{result['to_page']}|{result['event_name']}|"
+                                f"{result['source']}|{result['sink']}\n")
+                    f.flush()
+                except Exception as e:
+                    print(f"[inter_page listener] error: {e}")
+                break
+            if isinstance(message, Storage):
+                # add storage to inter_page_storage
+                add_inter_page_data(message)
 
 
 def obtain_valid_page(files):
@@ -111,10 +134,13 @@ def analyze_mini_program(app_path, results_path, config, workers, bench):
 
     manager = mp.Manager()
     queue = manager.Queue()
-    pool = mp.Pool(workers if workers is not None else mp.cpu_count())
+    inter_page_queue = manager.Queue()
+    pool = mp.Pool(workers + 2 if workers is not None else mp.cpu_count())
 
-    # put listener to pool first
+    # put listeners to pool first
     pool.apply_async(analyze_listener, (os.path.join(results_path, f"{os.path.basename(app_path)}-result.csv"), queue))
+    pool.apply_async(inter_page_analyze_listener, (os.path.join(results_path, f"{os.path.basename(app_path)}-inter-page"
+                                                                              f"-result.csv"), inter_page_queue))
 
     bench_out = None
     if bench:
@@ -125,7 +151,8 @@ def analyze_mini_program(app_path, results_path, config, workers, bench):
     workers = dict()
     for p in pages:
         workers[p] = dict()
-        workers[p]["job"] = pool.apply_async(analyze_worker, (app_path, p, results_path, config, queue))
+        workers[p]["job"] = pool.apply_async(analyze_worker,
+                                             (app_path, p, results_path, config, queue, inter_page_queue))
         if bench:
             workers[p]["begin_time"] = int(time.time())
 
@@ -140,6 +167,7 @@ def analyze_mini_program(app_path, results_path, config, workers, bench):
                 workers[p]["end_time"] = int(time.time())
 
     queue.put("kill")
+    inter_page_queue.put("kill")
     pool.close()
     pool.join()
 

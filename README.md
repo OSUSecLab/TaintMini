@@ -56,7 +56,7 @@ We recommend seeking it out on external websites.
 ## Usage
 
 ```
-usage: mini-taint [-h] -i path [-o path] [-c path] [-j number] [-b]
+usage: taint-mini [-h] -i path [-o path] [-c path] [-j number] [-b]
 
 optional arguments:
   -h, --help            show this help message and exit

@@ -1,3 +1,6 @@
 
 .idea/
+resources/
+results/
+__pycache__
 
