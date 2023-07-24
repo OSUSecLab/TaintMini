@@ -86,6 +86,8 @@ def obtain_callee_from_call_expr(node):
 
 
 def obtain_var_decl_callee(node):
+    if(len(node.children)==0):
+        return ""
     return ".".join([i.attributes["name"] for i in node.children[0].children])
 
 
