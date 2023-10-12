@@ -28,7 +28,7 @@ def filter_results(results, config):
                         filtered[page].append(flow)
                 else:
                     # no sink filter, just apply source filter
-                    if flow['sink'] in config["sinks"]:
+                    if flow['source'] in config["sources"]:
                         filtered[page].append(flow)
             else:
                 # no source filter, apply sink filter
