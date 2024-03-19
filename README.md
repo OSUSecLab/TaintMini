@@ -5,7 +5,7 @@ and across mini-programs.
 
 <p align="center"><img src="figure/taint-mini.svg" alt="taintmini" width="800"></p>
 
-We implemented TaintMini based on `pdg_js` (from [DoubleX](https://github.com/Aurore54F/DoubleX)). For more implementation details, please refer to our [paper](https://chaowang.dev/publications/icse23.pdf).
+We implemented TaintMini based on `pdg_js` (from [DoubleX](https://github.com/Aurore54F/DoubleX) by [Aurore Fass](https://aurore54f.github.io/) *et al*.). For more implementation details, please refer to our [paper](https://chaowang.dev/publications/icse23.pdf) and the [DoubleX paper](https://swag.cispa.saarland/papers/fass2021doublex.pdf).
 
 ## Table of contents
 
@@ -56,7 +56,7 @@ We recommend seeking it out on external websites.
 ## Usage
 
 ```
-usage: taint-mini [-h] -i path [-o path] [-c path] [-j number] [-b]
+usage: mini-taint [-h] -i path [-o path] [-c path] [-j number] [-b]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -115,6 +115,13 @@ If you find TaintMini useful, please consider citing our paper:
   author={Wang, Chao and Ko, Ronny and Zhang, Yue and Yang, Yuqing and Lin, Zhiqiang},
   booktitle={Proceedings of the 45th International Conference on Software Engineering},
   year={2023}
+}
+
+@inproceedings{fass2021doublex,
+author="Aurore Fass and Doli{\`e}re Francis Som{\'e} and Michael Backes and Ben Stock",
+title="{\textsc{DoubleX}: Statically Detecting Vulnerable Data Flows in Browser Extensions at Scale}",
+booktitle="ACM CCS",
+year="2021"
 }
 ```
 
