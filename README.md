@@ -107,7 +107,7 @@ python main.py -i ./index.txt -o ./results -j $(nproc) -b
 
 ## Citation
 
-If you find TaintMini useful, please consider citing our paper:
+If you find TaintMini useful, please consider citing our paper and DoubleX:
 
 ```plaintext
 @inproceedings{wang2023taintmini,
